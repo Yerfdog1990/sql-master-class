@@ -6,6 +6,8 @@ import sql.JDBCUtils;
 
 import java.sql.*;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class DDLTest {
     JDBCUtils jdbcUtils = new JDBCUtils();
 
@@ -42,9 +44,18 @@ public class DDLTest {
 
                         // ALTER table
                         try(Statement statement = connection.createStatement()){
+                            // 1. Add a column
                             statement.execute("ALTER TABLE SCHOOL ADD COLUMN address VARCHAR(255)");
                             // Verify the structure of the SCHOOL table
                             checkTableStructure(connection, "SCHOOL", 3);
+
+                            // 2. Modify column data type
+                            statement.execute("ALTER TABLE SCHOOL ALTER COLUMN address INT");
+                            checkDataType(connection, "SCHOOL", "address");
+
+                            // 3. Drop a column
+                            statement.execute("ALTER TABLE SCHOOL DROP COLUMN address");
+                            checkTableStructure(connection, "SCHOOL", 2);
                         }
 
                         // DROP table
@@ -87,7 +98,27 @@ public class DDLTest {
                     System.out.println(tableName + " table has " + actualColumnCount + " columns.");
 
                     // Assert the column count
-                    Assertions.assertEquals(expectedColumnCount, actualColumnCount);
+                    assertEquals(expectedColumnCount, actualColumnCount);
+                }
+            }
+        }
+    }
+
+    // Helper method to check data type
+    private void checkDataType(Connection connection, String tableName, String columnName) throws SQLException{
+        String query = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ? AND COLUMN_NAME = ?";
+
+        // Use try-with-resources to auto-close resources
+        try(PreparedStatement preparedStatement = connection.prepareStatement(query)){
+            preparedStatement.setString(1, tableName.toUpperCase());
+            preparedStatement.setString(2, columnName.toUpperCase());
+
+            // Execute the query
+            try(ResultSet resultSet = preparedStatement.executeQuery()){
+                if(resultSet.next()) {
+                    String actualDataType = resultSet.getString(1);
+                    System.out.println(tableName + " table column " + columnName + " has " + actualDataType + " data type.");
+                    Assertions.assertEquals("INTEGER", actualDataType);
                 }
             }
         }
