@@ -51,7 +51,7 @@ public class DDLTest {
 
                             // 2. Modify column data type
                             statement.execute("ALTER TABLE SCHOOL ALTER COLUMN address INT");
-                            checkDataType(connection, "SCHOOL", "address");
+                            checkDataType(connection);
 
                             // 3. Drop a column
                             statement.execute("ALTER TABLE SCHOOL DROP COLUMN address");
@@ -105,19 +105,19 @@ public class DDLTest {
     }
 
     // Helper method to check data type
-    private void checkDataType(Connection connection, String tableName, String columnName) throws SQLException{
+    private void checkDataType(Connection connection) throws SQLException{
         String query = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ? AND COLUMN_NAME = ?";
 
         // Use try-with-resources to auto-close resources
         try(PreparedStatement preparedStatement = connection.prepareStatement(query)){
-            preparedStatement.setString(1, tableName.toUpperCase());
-            preparedStatement.setString(2, columnName.toUpperCase());
+            preparedStatement.setString(1, "SCHOOL".toUpperCase());
+            preparedStatement.setString(2, "address".toUpperCase());
 
             // Execute the query
             try(ResultSet resultSet = preparedStatement.executeQuery()){
                 if(resultSet.next()) {
                     String actualDataType = resultSet.getString(1);
-                    System.out.println(tableName + " table column " + columnName + " has " + actualDataType + " data type.");
+                    System.out.println("SCHOOL" + " table column " + "address" + " has " + actualDataType + " data type.");
                     Assertions.assertEquals("INTEGER", actualDataType);
                 }
             }
